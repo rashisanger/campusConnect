@@ -24,7 +24,6 @@ async function seedAdmin() {
     if (existingAdmin.role !== 'admin') {
       throw new Error(`An account for ${email} exists but is not an admin.`);
     }
-    console.log(`Admin account ${email} already exists; no changes made.`);
   } else {
     await User.create({
       name: 'CampusConnect Admin',
@@ -32,7 +31,6 @@ async function seedAdmin() {
       passwordHash: ADMIN_PASSWORD,
       role: 'admin'
     });
-    console.log(`Initial admin account created for ${email}.`);
   }
 
   await Category.bulkWrite(
@@ -44,7 +42,6 @@ async function seedAdmin() {
       }
     }))
   );
-  console.log('Default categories are ready.');
 }
 
 seedAdmin()

@@ -49,7 +49,6 @@ async function run() {
   ];
   const results = await Promise.all(checks.map(([name, query]) => explain(name, query)));
   console.table(results);
-  console.log('Explain completed. This script only inspected query plans; it did not modify records.');
 }
 
 run()
