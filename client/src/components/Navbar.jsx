@@ -37,6 +37,11 @@ export default function Navbar() {
               <Link to={homeByRole[user.role]} className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100">
                 Dashboard
               </Link>
+              {user.role === 'student' && (
+                <Link to="/student/events" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 sm:inline">
+                  My events
+                </Link>
+              )}
               {(user.role === 'organizer' || user.role === 'admin') && (
                 <Link to="/organizer/events" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 md:inline">
                   Manage events

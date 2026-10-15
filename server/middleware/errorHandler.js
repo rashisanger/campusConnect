@@ -30,6 +30,7 @@ function errorHandler(error, _req, res, _next) {
 
   const response = { message: statusCode >= 500 ? 'An unexpected server error occurred.' : message };
   if (errors) response.errors = errors;
+  if (error.checkInTime) response.checkInTime = error.checkInTime;
   return res.status(statusCode).json(response);
 }
 

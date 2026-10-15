@@ -82,6 +82,8 @@ export default function OrganizerEventsPage() {
                 <div className="flex flex-wrap gap-2">
                   <Link to={`/events/${event._id}`} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">View</Link>
                   <Link to={`/organizer/events/${event._id}/edit`} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">Edit</Link>
+                  <Link to={`/organizer/events/${event._id}/attendees`} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">Attendees</Link>
+                  <Link to={`/organizer/events/${event._id}/check-in`} className="rounded-lg border border-indigo-200 px-3 py-2 text-sm font-semibold text-indigo-700">Check-in</Link>
                   {event.status !== 'cancelled' && (
                     <button type="button" onClick={() => setConfirmation({ action: 'cancel', event })} className="rounded-lg border border-amber-200 px-3 py-2 text-sm font-semibold text-amber-700">Cancel event</button>
                   )}

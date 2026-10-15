@@ -1,33 +1,81 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import Button from '../components/Button';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Modal from '../components/Modal';
+import { useAuth } from '../context/AuthContext';
 import { getEventById } from '../services/eventService';
+import { getRegistrationForEvent, register } from '../services/registrationService';
 import { formatLocalDateTime } from '../utils/eventDate';
 
 export default function EventDetailPage() {
   const { eventId } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [event, setEvent] = useState(null);
+  const [registration, setRegistration] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [registering, setRegistering] = useState(false);
+  const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
-    getEventById(eventId)
-      .then((data) => { if (active) setEvent(data); })
+    setError('');
+    const requests = [getEventById(eventId)];
+    if (user?.role === 'student') requests.push(getRegistrationForEvent(eventId));
+
+    Promise.all(requests)
+      .then(([data, currentRegistration]) => {
+        if (!active) return;
+        setEvent(data);
+        setRegistration(currentRegistration || null);
+      })
       .catch((requestError) => {
         if (active) setError(requestError.response?.status === 404 ? 'This event could not be found.' : 'Could not load this event.');
       })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [eventId]);
+  }, [eventId, user?.role]);
+
+  async function confirmRegistration() {
+    setRegistering(true);
+    try {
+      const created = await register(eventId);
+      setRegistration(created);
+      toast.success('You are registered for this event.');
+      try {
+        setEvent(await getEventById(eventId));
+      } catch {
+        toast.error('Registration succeeded, but available seats could not be refreshed.');
+      }
+      navigate(`/student/registrations/${created._id}`);
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || 'Could not register for this event.';
+      toast.error(message);
+      setError(message);
+      try {
+        setEvent(await getEventById(eventId));
+      } catch {
+        setError('Registration failed and event details could not be refreshed.');
+      }
+    } finally {
+      setConfirming(false);
+      setRegistering(false);
+    }
+  }
 
   if (loading) return <main className="mx-auto max-w-6xl px-5 py-12"><LoadingSpinner label="Loading event…" /></main>;
   if (error) return <main className="mx-auto max-w-6xl px-5 py-12"><ErrorState message={error} /><Link className="mt-5 inline-block text-sm font-semibold text-indigo-700" to="/events">Back to events</Link></main>;
   if (!event) return null;
+  const isStudent = user?.role === 'student';
+  const registrationClosed = new Date(event.registrationDeadline) <= new Date()
+    || new Date(event.schedule.startAt) <= new Date();
+  const isFull = event.availableSeats <= 0;
 
   return (
     <main className="mx-auto max-w-5xl px-5 py-10">
@@ -84,9 +132,39 @@ export default function EventDetailPage() {
             <div><dt className="text-slate-500">Capacity</dt><dd className="mt-1 font-medium text-slate-800">{event.capacity} people · {event.availableSeats} available</dd></div>
             <div><dt className="text-slate-500">Registration deadline</dt><dd className="mt-1 font-medium text-slate-800">{formatLocalDateTime(event.registrationDeadline, { dateStyle: 'medium', timeStyle: 'short' })}</dd></div>
           </dl>
-          <Button className="mt-6 w-full" disabled>Registration coming soon</Button>
+          {event.status === 'cancelled' ? (
+            <Button className="mt-6 w-full" disabled>Event cancelled</Button>
+          ) : !user ? (
+            <Link to="/login" state={{ from: { pathname: `/events/${event._id}` } }} className="mt-6 block rounded-xl bg-indigo-600 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-indigo-700">
+              Login to register
+            </Link>
+          ) : !isStudent ? (
+            <p className="mt-6 rounded-xl bg-slate-50 p-3 text-center text-xs leading-5 text-slate-600">Registration is available to student accounts.</p>
+          ) : registration?.status === 'registered' ? (
+            <Link to={`/student/registrations/${registration._id}`} className="mt-6 block rounded-xl bg-indigo-600 px-5 py-3 text-center text-sm font-semibold text-white hover:bg-indigo-700">
+              View registration
+            </Link>
+          ) : isFull ? (
+            <Button className="mt-6 w-full" disabled>Event full</Button>
+          ) : registrationClosed ? (
+            <Button className="mt-6 w-full" disabled>Registration closed</Button>
+          ) : (
+            <Button className="mt-6 w-full" disabled={registering} onClick={() => setConfirming(true)}>
+              {registering ? 'Registering…' : 'Register now'}
+            </Button>
+          )}
         </aside>
       </div>
+      <Modal
+        open={confirming}
+        title="Confirm registration"
+        confirmLabel="Register"
+        busy={registering}
+        onClose={() => setConfirming(false)}
+        onConfirm={confirmRegistration}
+      >
+        Register for “{event.title}”? Your place will be reserved when you confirm.
+      </Modal>
     </main>
   );
 }
