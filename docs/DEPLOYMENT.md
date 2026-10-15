@@ -23,7 +23,7 @@ Deploy the Express API to Render and the Vite single-page app to Vercel. Keep cr
    | `MONGODB_URI` | Atlas connection string for the production database |
    | `JWT_SECRET` | A fresh, long, random secret; never reuse a checked-in value |
    | `JWT_EXPIRES_IN` | Token lifetime, for example `7d` |
-   | `CLIENT_URL` | Comma-separated allowed frontend origins, e.g. `http://localhost:5173,https://your-campusconnect.vercel.app` |
+   | `CLIENT_URL` | Comma-separated allowed frontend origins: `http://localhost:5173,https://campus-connect-beryl-chi.vercel.app` |
    | `NODE_ENV` | `production` |
    | `ADMIN_EMAIL` | Email used by the one-time initial-admin seed, if needed |
    | `ADMIN_PASSWORD` | Strong initial admin password, if running the seed |
@@ -43,10 +43,10 @@ Deploy the Express API to Render and the Vite single-page app to Vercel. Keep cr
 
    | Variable | Value |
    |---|---|
-   | `VITE_API_URL` | `https://<your-render-service>.onrender.com/api` |
+   | `VITE_API_URL` | `https://campusconnect-3ods.onrender.com/api` |
 
 6. Deploy. [client/vercel.json](../client/vercel.json) rewrites frontend paths to `index.html`, so React Router routes work when refreshed directly.
-7. Copy the deployed Vercel origin, such as `https://your-campusconnect.vercel.app`, and add it to Render's `CLIENT_URL`. Include localhost as another comma-separated origin if local browser development should still call the deployed API.
+7. The deployed origin `https://campus-connect-beryl-chi.vercel.app` is included in the backend's default allowlist. Keep it in Render's `CLIENT_URL` as well, alongside `http://localhost:5173` if local browser development should call the deployed API.
 8. Save the Render environment change and redeploy/restart the API. Verify both the health endpoint and a browser request from the deployed site.
 
 ## 4. Local development and secrets

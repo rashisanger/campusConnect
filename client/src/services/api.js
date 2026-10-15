@@ -2,8 +2,17 @@ import axios from 'axios';
 
 export const TOKEN_KEY = 'campusconnect_token';
 
+const configuredApiUrl = import.meta.env.VITE_API_URL
+  || (import.meta.env.DEV
+    ? 'http://localhost:5000/api'
+    : 'https://campusconnect-3ods.onrender.com/api');
+const normalizedApiUrl = configuredApiUrl.replace(/\/+$/, '');
+const apiBaseUrl = /\/api$/i.test(normalizedApiUrl)
+  ? normalizedApiUrl
+  : `${normalizedApiUrl}/api`;
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: apiBaseUrl,
   headers: { 'Content-Type': 'application/json' }
 });
 
