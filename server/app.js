@@ -9,6 +9,8 @@ const adminRoutes = require('./routes/adminRoutes');
 const catalogRoutes = require('./routes/catalogRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const organizerRoutes = require('./routes/organizerRoutes');
+const registrationRoutes = require('./routes/registrationRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -38,6 +40,8 @@ app.use('/api', catalogRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/organizer', organizerRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/registrations', registrationRoutes);
+app.use('/api/dashboards', dashboardRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
