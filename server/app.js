@@ -5,6 +5,10 @@ const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const catalogRoutes = require('./routes/catalogRoutes');
+const eventRoutes = require('./routes/eventRoutes');
+const organizerRoutes = require('./routes/organizerRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -30,6 +34,10 @@ const authLimiter = rateLimit({
 });
 
 app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api', catalogRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/organizer', organizerRoutes);
+app.use('/api/admin', adminRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

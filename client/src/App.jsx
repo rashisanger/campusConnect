@@ -8,6 +8,12 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import WelcomePage from './pages/WelcomePage';
+import EventsPage from './pages/EventsPage';
+import EventDetailPage from './pages/EventDetailPage';
+import EventFormPage from './pages/EventFormPage';
+import OrganizerEventsPage from './pages/OrganizerEventsPage';
+import AdminCatalogPage from './pages/AdminCatalogPage';
+import AdminUsersPage from './pages/AdminUsersPage';
 
 function AppRoutes() {
   const { loading } = useAuth();
@@ -20,9 +26,17 @@ function AppRoutes() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/events/:eventId" element={<EventDetailPage />} />
         <Route path="/student" element={<ProtectedRoute roles={['student']}><WelcomePage /></ProtectedRoute>} />
-        <Route path="/organizer" element={<ProtectedRoute roles={['organizer']}><WelcomePage /></ProtectedRoute>} />
+        <Route path="/organizer" element={<ProtectedRoute roles={['organizer', 'admin']}><WelcomePage /></ProtectedRoute>} />
+        <Route path="/organizer/events" element={<ProtectedRoute roles={['organizer', 'admin']}><OrganizerEventsPage /></ProtectedRoute>} />
+        <Route path="/organizer/events/new" element={<ProtectedRoute roles={['organizer', 'admin']}><EventFormPage /></ProtectedRoute>} />
+        <Route path="/organizer/events/:eventId/edit" element={<ProtectedRoute roles={['organizer', 'admin']}><EventFormPage /></ProtectedRoute>} />
         <Route path="/admin" element={<ProtectedRoute roles={['admin']}><WelcomePage /></ProtectedRoute>} />
+        <Route path="/admin/categories" element={<ProtectedRoute roles={['admin']}><AdminCatalogPage kind="categories" /></ProtectedRoute>} />
+        <Route path="/admin/venues" element={<ProtectedRoute roles={['admin']}><AdminCatalogPage kind="venues" /></ProtectedRoute>} />
+        <Route path="/admin/users" element={<ProtectedRoute roles={['admin']}><AdminUsersPage /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

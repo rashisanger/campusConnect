@@ -2,7 +2,10 @@ require('dotenv').config();
 
 const mongoose = require('mongoose');
 const connectDB = require('../config/db');
+const Category = require('../models/Category');
 const User = require('../models/User');
+
+const DEFAULT_CATEGORIES = ['Technical', 'Cultural', 'Sports', 'Workshop', 'Seminar', 'Hackathon'];
 
 async function seedAdmin() {
   const { ADMIN_EMAIL, ADMIN_PASSWORD } = process.env;
@@ -22,16 +25,26 @@ async function seedAdmin() {
       throw new Error(`An account for ${email} exists but is not an admin.`);
     }
     console.log(`Admin account ${email} already exists; no changes made.`);
-    return;
+  } else {
+    await User.create({
+      name: 'CampusConnect Admin',
+      email,
+      passwordHash: ADMIN_PASSWORD,
+      role: 'admin'
+    });
+    console.log(`Initial admin account created for ${email}.`);
   }
 
-  await User.create({
-    name: 'CampusConnect Admin',
-    email,
-    passwordHash: ADMIN_PASSWORD,
-    role: 'admin'
-  });
-  console.log(`Initial admin account created for ${email}.`);
+  await Category.bulkWrite(
+    DEFAULT_CATEGORIES.map((name) => ({
+      updateOne: {
+        filter: { name },
+        update: { $setOnInsert: { name, description: '' } },
+        upsert: true
+      }
+    }))
+  );
+  console.log('Default categories are ready.');
 }
 
 seedAdmin()
