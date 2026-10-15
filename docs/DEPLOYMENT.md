@@ -46,7 +46,7 @@ Deploy the Express API to Render and the Vite single-page app to Vercel. Keep cr
    | `VITE_API_URL` | `https://campusconnect-3ods.onrender.com/api` |
 
 6. Deploy. [client/vercel.json](../client/vercel.json) rewrites frontend paths to `index.html`, so React Router routes work when refreshed directly.
-7. The deployed origin `https://campus-connect-beryl-chi.vercel.app` is included in the backend's default allowlist. Keep it in Render's `CLIENT_URL` as well, alongside `http://localhost:5173` if local browser development should call the deployed API.
+7. The deployed origin `https://campus-connect-beryl-chi.vercel.app` is included in the backend's default allowlist. Vercel previews matching `https://campus-connect-<deployment-id>-rashi-sangers-projects.vercel.app` are also allowed. Keep the production origin in Render's `CLIENT_URL` as well, alongside `http://localhost:5173` if local browser development should call the deployed API.
 8. Save the Render environment change and redeploy/restart the API. Verify both the health endpoint and a browser request from the deployed site.
 
 ## 4. Local development and secrets

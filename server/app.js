@@ -27,7 +27,9 @@ const allowedOrigins = [
   .filter(Boolean);
 const corsOptions = {
   origin(origin, callback) {
-    return callback(null, !origin || allowedOrigins.includes(origin));
+    const isAllowedVercelPreview = typeof origin === 'string'
+      && /^https:\/\/campus-connect-[a-z0-9-]+-rashi-sangers-projects\.vercel\.app$/i.test(origin);
+    return callback(null, !origin || allowedOrigins.includes(origin) || isAllowedVercelPreview);
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
