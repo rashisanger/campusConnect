@@ -9,3 +9,8 @@ export async function getOrganizerDashboard() {
   const response = await api.get('/dashboards/organizer');
   return response.data;
 }
+
+export async function getAdminDashboard() {
+  const response = await api.get('/dashboards/admin');
+  return response.data;
+}

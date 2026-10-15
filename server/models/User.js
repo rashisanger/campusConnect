@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
+      // Unique email lookup is used by registration, login, and account administration.
       unique: true,
       lowercase: true,
       trim: true,
@@ -61,6 +62,13 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Admin user listing filters by role and active state, then orders newest accounts first.
+userSchema.index({ role: 1, isActive: 1, createdAt: -1 });
+// Department aggregation can read grouping values from this index.
+userSchema.index({ department: 1 });
+// Year aggregation can read grouping values from this index.
+userSchema.index({ year: 1 });
 
 userSchema.pre('save', async function hashPassword() {
   if (!this.isModified('passwordHash')) return;

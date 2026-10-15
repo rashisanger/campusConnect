@@ -51,8 +51,18 @@ eventSchema.index({ title: 'text', description: 'text', tags: 'text' });
 eventSchema.index({ status: 1, 'schedule.startAt': 1 });
 // Load and order an organizer's events without scanning other organizers.
 eventSchema.index({ organizer: 1, 'schedule.startAt': 1 });
+// Admin event filters can select one organizer and then sort the matching results by creation time.
+eventSchema.index({ organizer: 1, createdAt: -1 });
 // Filter event discovery by category and date.
 eventSchema.index({ category: 1, 'schedule.startAt': 1 });
+// Venue-filtered discovery sorts matching events by their start time.
+eventSchema.index({ venue: 1, 'schedule.startAt': 1 });
+// Admin event listing and public newest sorting use creation time after optional status filtering.
+eventSchema.index({ status: 1, createdAt: -1 });
+// The unfiltered admin event table sorts all event records by creation time.
+eventSchema.index({ createdAt: -1 });
+// Admin analytics ranks events by the denormalized registered-seat counter.
+eventSchema.index({ registeredCount: -1 });
 
 eventSchema.set('toJSON', {
   transform(_document, returnedObject) {

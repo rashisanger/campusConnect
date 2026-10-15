@@ -5,6 +5,7 @@ const categorySchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      // Admin category forms and event filters look up category names without duplicates.
       unique: true,
       trim: true,
       maxlength: 80

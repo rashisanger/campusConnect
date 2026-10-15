@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Category = require('../models/Category');
 const Event = require('../models/Event');
+const Registration = require('../models/Registration');
 const Venue = require('../models/Venue');
 const User = require('../models/User');
 
@@ -261,11 +262,86 @@ async function createAdminUser(body) {
 async function listAdminUsers(query) {
   const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
   const limit = Math.min(50, Math.max(1, Number.parseInt(query.limit, 10) || 20));
+  const filter = {};
+  if (['student', 'organizer', 'admin'].includes(query.role)) filter.role = query.role;
+  if (query.isActive === 'true' || query.isActive === 'false') filter.isActive = query.isActive === 'true';
+  const search = typeof query.search === 'string' ? query.search.trim().slice(0, 100) : '';
+  if (search) {
+    const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const expression = new RegExp(escaped, 'i');
+    filter.$or = [{ name: expression }, { email: expression }];
+  }
   const [users, totalUsers] = await Promise.all([
-    User.find().sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),
-    User.countDocuments()
+    User.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),
+    User.countDocuments(filter)
   ]);
   return { users, page, totalPages: Math.ceil(totalUsers / limit), totalUsers };
+}
+
+async function getAdminEvents(query) {
+  const page = Math.max(1, Number.parseInt(query.page, 10) || 1);
+  const limit = Math.min(50, Math.max(1, Number.parseInt(query.limit, 10) || 20));
+  const filter = {};
+  if (['draft', 'published', 'cancelled', 'completed'].includes(query.status)) {
+    filter.status = query.status;
+  }
+  if (query.organizer) {
+    if (!validId(query.organizer)) throw new ServiceError('Organizer filter must be a valid user ID.');
+    filter.organizer = query.organizer;
+  }
+  const search = typeof query.search === 'string' ? safeTextSearch(query.search) : '';
+  if (search) filter.$text = { $search: search };
+
+  const [events, totalEvents] = await Promise.all([
+    Event.find(filter)
+      .populate('organizer', 'name email')
+      .populate('category', 'name')
+      .populate('venue', 'name building room')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit),
+    Event.countDocuments(filter)
+  ]);
+  return { events, page, totalPages: Math.ceil(totalEvents / limit), totalEvents };
+}
+
+async function updateAdminUser(userId, body) {
+  const allowedFields = ['role', 'isActive', 'name', 'department', 'year'];
+  const updates = pickFields(body, allowedFields);
+  if (Object.keys(updates).length === 0) {
+    throw new ServiceError('Provide at least one supported user field to update.');
+  }
+  if (updates.role !== undefined && !['student', 'organizer', 'admin'].includes(updates.role)) {
+    throw new ServiceError('Role must be student, organizer, or admin.');
+  }
+  if (updates.isActive !== undefined && typeof updates.isActive !== 'boolean') {
+    throw new ServiceError('isActive must be true or false.');
+  }
+
+  const user = await User.findById(userId);
+  if (!user) throw new ServiceError('User not found.', 404);
+  user.set(updates);
+  await user.save();
+  return user;
+}
+
+async function deleteAdminUser(userId, requestingAdminId) {
+  if (userId === requestingAdminId) {
+    throw new ServiceError('You cannot delete your own admin account.', 409);
+  }
+  const user = await User.findById(userId);
+  if (!user) throw new ServiceError('User not found.', 404);
+  if (user.role === 'admin' && (await User.countDocuments({ role: 'admin' })) <= 1) {
+    throw new ServiceError('You cannot delete the last remaining admin account.', 409);
+  }
+  const [hasRegistrations, hasEvents] = await Promise.all([
+    Registration.exists({ user: userId }),
+    Event.exists({ organizer: userId })
+  ]);
+  if (hasRegistrations || hasEvents) {
+    throw new ServiceError('This user has registrations or owns events. Deactivate the account instead.', 409);
+  }
+  await user.deleteOne();
 }
 
 module.exports = {
@@ -286,5 +362,8 @@ module.exports = {
   updateVenue,
   deleteVenue,
   createAdminUser,
-  listAdminUsers
+  listAdminUsers,
+  getAdminEvents,
+  updateAdminUser,
+  deleteAdminUser
 };

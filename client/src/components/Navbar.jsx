@@ -49,14 +49,17 @@ export default function Navbar() {
               )}
               {user.role === 'admin' && (
                 <>
+                  <Link to="/admin/users" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 lg:inline">
+                    Users
+                  </Link>
+                  <Link to="/admin/events" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 lg:inline">
+                    Events
+                  </Link>
                   <Link to="/admin/categories" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 lg:inline">
                     Categories
                   </Link>
                   <Link to="/admin/venues" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 lg:inline">
                     Venues
-                  </Link>
-                  <Link to="/admin/users" className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 lg:inline">
-                    Users
                   </Link>
                 </>
               )}

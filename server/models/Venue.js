@@ -14,6 +14,7 @@ const venueSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Admin venue management checks this key to prevent duplicate named rooms.
 venueSchema.index({ name: 1, building: 1, room: 1 }, { unique: true });
 
 module.exports = mongoose.model('Venue', venueSchema);
